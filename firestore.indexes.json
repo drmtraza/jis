@@ -1,0 +1,137 @@
+{
+  "indexes": [
+    // Users Collection Indexes (most are automatic single-field)
+    // No explicit composite indexes typically needed for users unless specific role-based sorted queries are frequent.
+    // Example: if you frequently query for mentors created recently:
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "role", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+
+    // Pairs Collection Indexes
+    {
+      "collectionGroup": "pairs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "husbandID", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"} // Example: if you want to find pairs by husband, ordered by creation
+      ]
+    },
+    {
+      "collectionGroup": "pairs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "wifeID", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"} // Example: if you want to find pairs by wife, ordered by creation
+      ]
+    },
+    {
+      "collectionGroup": "pairs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "mentorID", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"} // To find pairs for a mentor, ordered by creation
+      ]
+    },
+
+    // DailyPrompts Collection Indexes
+    {
+      "collectionGroup": "dailyPrompts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isActive", "order": "ASCENDING"},
+        {"fieldPath": "category", "order": "ASCENDING"},
+        {"fieldPath": "type", "order": "ASCENDING"},
+        {"fieldPath": "lastUsedAt", "order": "ASCENDING"} // For prompt rotation
+      ]
+    },
+    {
+      "collectionGroup": "dailyPrompts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isActive", "order": "ASCENDING"},
+        {"fieldPath": "scheduledDate", "order": "ASCENDING"} // For fetching scheduled prompts
+      ]
+    },
+
+    // UserReflections Collection Indexes
+    {
+      "collectionGroup": "userReflections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userID", "order": "ASCENDING"},
+        {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "userReflections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userID", "order": "ASCENDING"},
+        {"fieldPath": "promptID", "order": "ASCENDING"}
+        // Add 'createdAt' if you need to order reflections for a specific user and prompt
+        // {"fieldPath": "createdAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "userReflections",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "pairID", "order": "ASCENDING"},
+        {"fieldPath": "promptID", "order": "ASCENDING"},
+        // {"fieldPath": "userID", "order": "ASCENDING"}, // if mentor needs to see who wrote it within pair context
+        {"fieldPath": "createdAt", "order": "DESCENDING"} // to see reflections for a pair on a prompt
+      ]
+    },
+
+    // LoveNotes Collection Indexes
+    {
+      "collectionGroup": "loveNotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isActive", "order": "ASCENDING"},
+        {"fieldPath": "category", "order": "ASCENDING"}
+      ]
+    },
+
+    // SentLoveNotes Collection Indexes
+    {
+      "collectionGroup": "sentLoveNotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "receiverID", "order": "ASCENDING"},
+        {"fieldPath": "sentAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "sentLoveNotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "receiverID", "order": "ASCENDING"},
+        {"fieldPath": "isRead", "order": "ASCENDING"},
+        {"fieldPath": "sentAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "sentLoveNotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "senderID", "order": "ASCENDING"},
+        {"fieldPath": "sentAt", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "sentLoveNotes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "pairID", "order": "ASCENDING"},
+        {"fieldPath": "sentAt", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

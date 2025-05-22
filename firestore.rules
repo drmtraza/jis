@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users Collection
+    match /users/{userId} {
+      // Allow user to read and write their own document
+      allow read, write: if request.auth.uid == userId;
+      // Allow authenticated users to read specific fields of other users (e.g., for spouse/mentor lookup)
+      // Be restrictive here: only allow reading necessary fields like firstName, lastName, role
+      allow get: if request.auth != null; // Further restrict fields in client/functions
+    }
+
+    // Pairs Collection
+    match /pairs/{pairId} {
+      // Allow users who are part of the pair to read the pair document
+      allow read: if request.auth.uid == resource.data.husbandID || request.auth.uid == resource.data.wifeID;
+      // Allow mentor of the pair to read the pair document
+      allow read: if request.auth.uid == resource.data.mentorID;
+      // Creation: Allow authenticated users to create a pair if they are the husband or wife
+      allow create: if request.auth.uid == request.resource.data.husbandID || request.auth.uid == request.resource.data.wifeID;
+      // Update: Allow users part of the pair to update (e.g., assign mentor)
+      // Be careful with updates, ensure users can only update specific fields (e.g. mentorID)
+      allow update: if request.auth.uid == resource.data.husbandID || request.auth.uid == resource.data.wifeID;
+      // Deletion should be handled carefully, perhaps only via admin or cloud function
+      allow delete: if false;
+    }
+
+    // DailyPrompts Collection
+    match /dailyPrompts/{promptId} {
+      // Allow any authenticated user to read prompts (assuming they are public content)
+      allow read: if request.auth != null;
+      // Admin/Content Manager role should write prompts (typically via a backend/admin panel)
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true; // Assuming an isAdmin field for admins
+    }
+
+    // UserReflections Collection
+    match /userReflections/{reflectionId} {
+      // User can create, read, update, delete their own reflections
+      allow read, write, delete: if request.auth.uid == resource.data.userID;
+      allow create: if request.auth.uid == request.resource.data.userID;
+      // Allow mentor to read reflections if they are the mentor for the pair associated with the reflection
+      // This requires checking the 'pairs' collection
+      allow read: if request.auth.uid == get(/databases/$(database)/documents/pairs/$(resource.data.pairID)).data.mentorID;
+    }
+
+    // LoveNotes Collection (pre-defined content)
+    match /loveNotes/{noteId} {
+      // Allow any authenticated user to read love notes
+      allow read: if request.auth != null;
+      // Admin/Content Manager role should write love notes
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true; // Assuming an isAdmin field
+    }
+
+    // SentLoveNotes Collection
+    match /sentLoveNotes/{sentNoteId} {
+      // Sender or receiver can read the sent note
+      allow read: if request.auth.uid == resource.data.senderID || request.auth.uid == resource.data.receiverID;
+      // Sender can create a note
+      allow create: if request.auth.uid == request.resource.data.senderID;
+      // Receiver can update the 'isRead' status
+      allow update: if request.auth.uid == resource.data.receiverID && request.resource.data.keys().hasOnly(['isRead']);
+      // Deletion: Generally not allowed for users to maintain history, perhaps sender can delete before read?
+      allow delete: if request.auth.uid == resource.data.senderID && resource.data.isRead == false; // Example: sender can delete if not read
+    }
+
+    // Helper function to check for admin role (example, actual implementation might vary)
+    // Ensure you have an 'isAdmin' field or similar in your users documents for this to work.
+    // This is a conceptual example; direct 'isAdmin' checks are often better done via custom claims or a dedicated admin collection.
+  }
+}
